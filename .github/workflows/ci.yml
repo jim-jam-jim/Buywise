@@ -1,0 +1,58 @@
+name: Verify BUYWISE
+on:
+  push:
+  pull_request:
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: buywise_test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/buywise_test
+      BETTER_AUTH_URL: http://localhost:3000
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - name: Generate disposable authentication secret
+        run: node -e "require('fs').appendFileSync(process.env.GITHUB_ENV, 'BETTER_AUTH_SECRET=' + require('crypto').randomBytes(48).toString('hex') + '\n')"
+      - run: npm ci
+      - run: npm run db:generate
+      - run: npm run db:migrate
+      - run: npm run db:seed
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+      - run: npm audit --audit-level=high
+      - name: Start production server
+        run: |
+          mkdir -p .local
+          npm start > .local/server.log 2>&1 &
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent http://localhost:3000/login > /dev/null; then exit 0; fi
+            sleep 1
+          done
+          exit 1
+      - run: npm run test:browser
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: verification-failure
+          path: |
+            playwright-report/
+            test-results/
+            .local/server.log

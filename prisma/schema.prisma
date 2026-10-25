@@ -1,0 +1,191 @@
+generator client {
+ provider = "prisma-client-js"
+}
+datasource db {
+ provider = "postgresql"
+}
+model User {
+ id String @id
+ name String
+ email String @unique
+ emailVerified Boolean @default(false)
+ image String?
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+ sessions Session[]
+ accounts Account[]
+ preference Preference?
+ budgets Budget[]
+ rules Rule[]
+ reviews Review[]
+ watches Watch[]
+ events Event[]
+ notifications Notification[]
+ comparisons Comparison[]
+ products Product[]
+}
+model Session {
+ id String @id
+ expiresAt DateTime
+ token String @unique
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+ ipAddress String?
+ userAgent String?
+ userId String
+ user User @relation(fields:[userId],references:[id],onDelete:Cascade)
+ @@index([userId])
+}
+model Account {
+ id String @id
+ accountId String
+ providerId String
+ userId String
+ user User @relation(fields:[userId],references:[id],onDelete:Cascade)
+ accessToken String?
+ refreshToken String?
+ idToken String?
+ accessTokenExpiresAt DateTime?
+ refreshTokenExpiresAt DateTime?
+ scope String?
+ password String?
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+ @@index([userId])
+}
+model Verification {
+ id String @id
+ identifier String
+ value String
+ expiresAt DateTime
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+ @@index([identifier])
+}
+model Preference {
+ userId String @id
+ user User @relation(fields:[userId],references:[id],onDelete:Cascade)
+ currency String @default("INR")
+ priorities Json @default("{\"price\":40,\"warrantyMonths\":30,\"returnDays\":30}")
+ onboarded Boolean @default(false)
+ optionalNotifications Boolean @default(true)
+ theme String @default("light")
+}
+model Budget {
+ id String @id @default(cuid())
+ userId String
+ user User @relation(fields:[userId],references:[id],onDelete:Cascade)
+ scope String
+ category String?
+ amount Int
+ currency String @default("INR")
+ alertAt Int @default(80)
+ enabled Boolean @default(true)
+ createdAt DateTime @default(now())
+ @@index([userId])
+}
+model Rule {
+ id String @id @default(cuid())
+ userId String
+ user User @relation(fields:[userId],references:[id],onDelete:Cascade)
+ name String
+ type String
+ parameters Json
+ outcome String @default("REVIEW")
+ enabled Boolean @default(true)
+ createdAt DateTime @default(now())
+ @@index([userId])
+}
+model Product {
+ id String @id @default(cuid())
+ ownerId String?
+ owner User? @relation(fields:[ownerId],references:[id],onDelete:Cascade)
+ name String
+ brand String
+ model String
+ category String
+ description String
+ specifications Json
+ price Int
+ fees Int @default(0)
+ currency String @default("INR")
+ seller String?
+ sellerRating Float?
+ warrantyMonths Int?
+ returnDays Int?
+ availability String?
+ sourceUrl String?
+ dataMode String
+ observedAt DateTime
+ incentive String?
+ @@index([ownerId,category,dataMode])
+}
+model Review {
+ id String @id @default(cuid())
+ userId String
+ user User @relation(fields:[userId],references:[id],onDelete:Cascade)
+ productId String?
+ product Json
+ category String
+ amount Int
+ currency String
+ verdict String
+ checks Json
+ alternatives Json
+ status String @default("pending")
+ reason String?
+ switchedFromAmount Int?
+ createdAt DateTime @default(now())
+ decidedAt DateTime?
+ receipt Receipt?
+ @@index([userId,createdAt])
+}
+model Receipt {
+ id String @id @default(cuid())
+ reviewId String @unique
+ review Review @relation(fields:[reviewId],references:[id],onDelete:Cascade)
+ snapshot Json
+ createdAt DateTime @default(now())
+}
+model Watch {
+ id String @id @default(cuid())
+ userId String
+ user User @relation(fields:[userId],references:[id],onDelete:Cascade)
+ productId String
+ targetPrice Int?
+ paused Boolean @default(false)
+ lastCheckedAt DateTime?
+ lastTriggeredAt DateTime?
+ createdAt DateTime @default(now())
+ @@unique([userId,productId])
+}
+model Comparison {
+ id String @id @default(cuid())
+ userId String
+ user User @relation(fields:[userId],references:[id],onDelete:Cascade)
+ productIds Json
+ weights Json
+ createdAt DateTime @default(now())
+ @@index([userId])
+}
+model Event {
+ id String @id @default(cuid())
+ userId String
+ user User @relation(fields:[userId],references:[id],onDelete:Cascade)
+ action String
+ entityId String?
+ detail String
+ createdAt DateTime @default(now())
+ @@index([userId,createdAt])
+}
+model Notification {
+ id String @id @default(cuid())
+ userId String
+ user User @relation(fields:[userId],references:[id],onDelete:Cascade)
+ title String
+ description String
+ link String
+ readAt DateTime?
+ createdAt DateTime @default(now())
+ @@index([userId,createdAt])
+}

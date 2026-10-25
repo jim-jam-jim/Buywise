@@ -1,0 +1,54 @@
+{
+  "name": "buywise",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --hostname 0.0.0.0",
+    "build": "next build",
+    "start": "next start --hostname 0.0.0.0",
+    "lint": "eslint .",
+    "typecheck": "next typegen && tsc --noEmit",
+    "test": "vitest run",
+    "test:e2e": "playwright test",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate deploy",
+    "db:seed": "tsx prisma/seed.ts",
+    "db:local": "tsx scripts/local-db.ts",
+    "setup:local": "tsx scripts/setup-local.ts",
+    "test:browser": "tsx scripts/test-browser.ts",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "dependencies": {
+    "@prisma/adapter-pg": "^7.10.1",
+    "@prisma/client": "^7.10.1",
+    "better-auth": "1.7.12",
+    "lucide-react": "^0.577.0",
+    "next": "16.4.3",
+    "papaparse": "^5.5.3",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.58.2",
+    "@sparticuz/chromium": "^153.0.0",
+    "@types/node": "^24.0.0",
+    "@types/papaparse": "^5.5.2",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "dotenv": "^17.3.1",
+    "embedded-postgres": "^18.1.0-beta.15",
+    "eslint": "^9.39.0",
+    "eslint-config-next": "16.4.3",
+    "prettier": "^3.9.10",
+    "prisma": "^7.10.1",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.18"
+  },
+  "type": "module",
+  "engines": {
+    "node": ">=24.0.0 <25"
+  }
+}
